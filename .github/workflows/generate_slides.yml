@@ -1,0 +1,45 @@
+name: Generate PowerPoint from Document
+
+on:
+  workflow_dispatch:
+    inputs:
+      file_url:
+        description: 'URL of the uploaded file (PDF or JPEG)'
+        required: true
+      title:
+        description: 'Title of the presentation'
+        required: true
+      recipient:
+        description: 'Recipient contact (email/phone)'
+        required: true
+
+jobs:
+  generate-slides:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Download the file from URL
+        run: |
+          curl -L -o uploaded_file "$INPUT_FILE_URL"
+
+      - name: Generate PowerPoint
+        run: |
+          python generate_slides.py "$GITHUB_WORKSPACE/uploads/$(basename $INPUT_FILE_URL)" "$INPUT_TITLE" "$INPUT_RECIPIENT"
+
+      - name: Upload PowerPoint file
+        uses: actions/upload-artifact@v2
+        with:
+          name: PowerPoint
+          path: docs/output/
