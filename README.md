@@ -206,7 +206,4 @@ Google Drive or Dropbox integration
 
 MIT License
 
-⸻
-
-Would you like me to generate this file for you now?
 
