@@ -1,41 +1,43 @@
 name: Generate PowerPoint from Document
 
+# This workflow is triggered by the Repository Dispatch event
 on:
-  workflow_dispatch:
-    inputs:
-      file_url:
-        description: 'URL of the uploaded file (PDF or JPEG)'
-        required: true
-      title:
-        description: 'Title of the presentation'
-        required: true
+  repository_dispatch:
+    types: [generate_slides]
 
 jobs:
   generate-slides:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout the repository (if any repository files are needed)
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      # Step 2: Set up Python
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
 
+      # Step 3: Install dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # Step 4: Download the file from the URL (passed via client_payload)
       - name: Download the file from URL
         run: |
-          curl -L -o uploads/$(basename ${{ github.event.inputs.file_url }}) "${{ github.event.inputs.file_url }}"
+          # Assuming the file URL is passed in the event payload
+          curl -L -o uploads/$(basename ${{ github.event.client_payload.file_url }}) "${{ github.event.client_payload.file_url }}"
 
+      # Step 5: Generate the PowerPoint Presentation
       - name: Generate PowerPoint Presentation
         run: |
-          python generate_slides.py "uploads/$(basename ${{ github.event.inputs.file_url }})" "${{ github.event.inputs.title }}"
+          python generate_slides.py "uploads/$(basename ${{ github.event.client_payload.file_url }})" "${{ github.event.client_payload.title }}"
 
+      # Step 6: Upload the generated PowerPoint as an artifact
       - name: Upload PowerPoint file as artifact
         uses: actions/upload-artifact@v2
         with:
