@@ -9,13 +9,11 @@ on:
       title:
         description: 'Title of the presentation'
         required: true
-      recipient:
-        description: 'Recipient contact (email/phone)'
-        required: true
 
 jobs:
   generate-slides:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -32,14 +30,14 @@ jobs:
 
       - name: Download the file from URL
         run: |
-          curl -L -o uploaded_file "$INPUT_FILE_URL"
+          curl -L -o uploads/$(basename ${{ github.event.inputs.file_url }}) "${{ github.event.inputs.file_url }}"
 
-      - name: Generate PowerPoint
+      - name: Generate PowerPoint Presentation
         run: |
-          python generate_slides.py "$GITHUB_WORKSPACE/uploads/$(basename $INPUT_FILE_URL)" "$INPUT_TITLE" "$INPUT_RECIPIENT"
+          python generate_slides.py "uploads/$(basename ${{ github.event.inputs.file_url }})" "${{ github.event.inputs.title }}"
 
-      - name: Upload PowerPoint file
+      - name: Upload PowerPoint file as artifact
         uses: actions/upload-artifact@v2
         with:
-          name: PowerPoint
+          name: PowerPoint Presentation
           path: docs/output/
