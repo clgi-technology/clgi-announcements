@@ -1,6 +1,5 @@
 name: Generate PowerPoint from Document
 
-# This workflow is triggered by the Repository Dispatch event
 on:
   repository_dispatch:
     types: [generate_slides]
@@ -14,13 +13,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      # Step 2: Set up Python
+      # Step 2: Set up Python (this is necessary to run the Python script)
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
 
-      # Step 3: Install dependencies
+      # Step 3: Install dependencies (e.g., python-pptx, PyMuPDF, etc.)
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -29,17 +28,18 @@ jobs:
       # Step 4: Download the file from the URL (passed via client_payload)
       - name: Download the file from URL
         run: |
-          # Assuming the file URL is passed in the event payload
+          # The file URL is passed via the client_payload of the event
+          # Using curl to download the file into the 'uploads' directory
           curl -L -o uploads/$(basename ${{ github.event.client_payload.file_url }}) "${{ github.event.client_payload.file_url }}"
 
-      # Step 5: Generate the PowerPoint Presentation
+      # Step 5: Generate the PowerPoint Presentation using the Python script
       - name: Generate PowerPoint Presentation
         run: |
           python generate_slides.py "uploads/$(basename ${{ github.event.client_payload.file_url }})" "${{ github.event.client_payload.title }}"
 
-      # Step 6: Upload the generated PowerPoint as an artifact
+      # Step 6: Upload the generated PowerPoint file as an artifact (optional, for easy download)
       - name: Upload PowerPoint file as artifact
         uses: actions/upload-artifact@v2
         with:
           name: PowerPoint Presentation
-          path: docs/output/
+          path: docs/output/generated-presentation.pptx
