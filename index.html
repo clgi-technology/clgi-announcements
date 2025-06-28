@@ -3,45 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Upload Form</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
-        h1 {
-            text-align: center;
-        }
-        form {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #f4f4f4;
-            padding: 20px;
-            border-radius: 8px;
-        }
-        input[type="file"], input[type="text"], input[type="submit"] {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        #statusMessage {
-            text-align: center;
-            font-size: 16px;
-            color: #333;
-            margin-top: 20px;
-        }
-    </style>
+    <title>Upload Document to Generate PowerPoint</title>
 </head>
 <body>
 
     <h1>Upload Document to Generate PowerPoint</h1>
 
-    <form id="uploadForm">
+    <form id="uploadForm" enctype="multipart/form-data">
         <label for="file">Choose a file (PDF or JPEG):</label>
         <input type="file" id="file" name="file" accept=".pdf, .jpeg, .jpg" required>
-
+        
         <label for="title">Title of the PowerPoint:</label>
         <input type="text" id="title" name="title" placeholder="Enter title for the slides" required>
 
@@ -66,19 +37,21 @@
         const file = fileInput.files[0];
         const title = titleInput.value;
 
-        // Handle the file upload (e.g., upload to cloud or GitHub Releases and get the file URL)
-        // For simplicity, we'll assume the file is publicly available (replace with the actual file URL)
-        const fileUrl = "https://example.com/path/to/uploaded/file.pdf"; // Replace with your actual file URL
+        // For this example, let's assume the file was uploaded to GitHub,
+        // and we know the raw URL for the uploaded file.
 
-        // GitHub API URL (update to match your GitHub repo)
-        const githubApiUrl = "https://api.github.com/repos/clgi-technology/clgi-announcements/dispatches";
+        // Example: The raw URL of the file uploaded to GitHub
+        const fileUrl = "https://raw.githubusercontent.com/username/clgi-announcements/main/uploaded-file.pdf";  // Replace this with the actual URL
+
+        // Now, trigger GitHub Actions via the API
+        const githubApiUrl = "https://api.github.com/repos/username/clgi-announcements/dispatches";
         const githubToken = "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN";  // Replace with your GitHub personal access token
 
         const payload = {
-            "event_type": "generate_slides",
+            "event_type": "generate_slides",  // Custom event type to trigger the workflow
             "client_payload": {
-                "file_url": fileUrl,
-                "title": title
+                "file_url": fileUrl,  // The raw URL of the file
+                "title": title  // Title to be used for the PowerPoint
             }
         };
 
@@ -90,15 +63,9 @@
             },
             body: JSON.stringify(payload)
         })
-        .then(response => {
-            if (response.ok) {
-                statusMessage.innerHTML = "File submitted successfully. PowerPoint generation in progress!";
-            } else {
-                response.json().then(data => {
-                    console.error("Error response:", data);
-                    statusMessage.innerHTML = "Error submitting file. Please try again later.";
-                });
-            }
+        .then(response => response.json())
+        .then(data => {
+            statusMessage.innerHTML = "File submitted successfully. PowerPoint generation in progress!";
         })
         .catch(error => {
             console.error("Error:", error);
