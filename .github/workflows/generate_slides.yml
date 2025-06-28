@@ -30,12 +30,22 @@ jobs:
         run: |
           # The file URL is passed via the client_payload of the event
           # Using curl to download the file into the 'uploads' directory
+          echo "Downloading file from ${GITHUB_EVENT_CLIENT_PAYLOAD_FILE_URL}"
           curl -L -o uploads/$(basename ${{ github.event.client_payload.file_url }}) "${{ github.event.client_payload.file_url }}"
-
+        
       # Step 5: Generate the PowerPoint Presentation using the Python script
       - name: Generate PowerPoint Presentation
         run: |
+          echo "Generating PowerPoint from the uploaded file..."
           python generate_slides.py "uploads/$(basename ${{ github.event.client_payload.file_url }})" "${{ github.event.client_payload.title }}"
+          
+          # Check if the PowerPoint file was created successfully
+          if [ ! -f "docs/output/generated-presentation.pptx" ]; then
+            echo "PowerPoint generation failed: output file not found."
+            exit 1
+          else
+            echo "PowerPoint file generated successfully."
+          fi
 
       # Step 6: Upload the generated PowerPoint file as an artifact (optional, for easy download)
       - name: Upload PowerPoint file as artifact
@@ -43,3 +53,9 @@ jobs:
         with:
           name: PowerPoint Presentation
           path: docs/output/generated-presentation.pptx
+
+      # Step 7: Deploy to GitHub Pages (optional, if needed)
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_id: ${{ steps.upload-artifact.outputs.artifact_id }}
