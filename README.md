@@ -1,182 +1,111 @@
-Doc2Slides, which automates the conversion of uploaded documents into downloadable PowerPoint presentations:
+# 📄 Doc2Slides: Upload to PowerPoint via GitHub Pages
 
-⸻
+Doc2Slides lets users upload PDF or JPEG files through a web form hosted on GitHub Pages. Once uploaded, a GitHub Actions workflow is triggered to generate a downloadable PowerPoint presentation from the document.
 
-📄 Doc2Slides
+---
 
-Doc2Slides is an automated system that allows users to upload PDFs or JPEGs via a form and receive a downloadable PowerPoint presentation with each page or image rendered as a slide.
+## 🚀 Features
 
-⸻
+- 🖼️ Upload PDF or JPEG via GitHub Pages form
+- 💾 File is saved to the GitHub repository using GitHub API
+- ⚙️ GitHub Actions workflow is triggered to convert the file to a PowerPoint
+- 📂 Generated `.pptx` is published to GitHub Pages for download
 
-✨ Features
+---
 
-📤 Accepts PDF and JPEG uploads via Tally.so or Typeform
+## 🌐 Live Demo
+```
+[https://clgi-technology.github.io/clgi-announcements/](https://clgi-technology.github.io/clgi-announcements/)
 
-🔁 Fully automated using Zapier + GitHub Actions
+```
 
-🖼️ Converts each page/image into a PowerPoint slide
+---
 
-📝 Adds optional titles or captions to slides
+## 📁 Project Structure
 
-📥 Sends download link via SMS or email
+```
+text
+.
+├── docs/
+│   └── output/                  # Generated PowerPoint presentations (deployed via GitHub Pages)
+├── uploads/                    # Uploaded files saved via GitHub API
+├── generate_slides.py         # Script to convert PDF/JPEG to PowerPoint
+├── index.html                 # GitHub Pages form (uploads + triggers workflow)
+├── .github/
+│   └── workflows/
+│       └── generate_slides.yml  # GitHub Actions workflow
+├── requirements.txt           # Python dependencies
+└── README.md
 
-🌐 Publishes .pptx files to GitHub Pages or cloud storage
+```
 
-🔐 Secure credential handling with GitHub Secrets
+🛠️ Setup Instructions
+1. Clone the Repo
+```
+git clone https://github.com/your-username/your-repo-name.git
+cd your-repo-name
 
-⸻
+```
+2. Enable GitHub Pages
+In your GitHub repo:
+
+Go to Settings → Pages
+
+Source: docs/ folder on main branch
+
+3. Add Personal Access Token (PAT)
+Generate a GitHub PAT with repo and workflow scopes.
+Store this token securely and use it in your index.html JavaScript.
+
+Do NOT hardcode your token in public files! For production use, route through a backend or proxy.
+
+4. Configure Workflow Trigger
+The workflow in .github/workflows/generate_slides.yml listens for
+
+
+```
+
+on:
+  repository_dispatch:
+    types: [generate_slides]
+Payload must include:
+
+{
+  "event_type": "generate_slides",
+  "client_payload": {
+    "file_url": "https://raw.githubusercontent.com/.../uploads/file.pdf",
+    "title": "Presentation Title"
+  }
+}
+
+```
 
 🧾 How It Works
+User uploads a file via index.html form
 
-User Uploads File
+JavaScript encodes and uploads file to /uploads/ via GitHub API
 
-Via a Tally.so or Typeform form with fields for:
+It then calls the GitHub REST API to trigger a repository_dispatch event
 
-File (PDF or JPEG)
-
-Title or description
-
-Contact info (email or phone)
-
-Zapier
+GitHub Actions workflow runs:
 
 Downloads the uploaded file
 
-Sends metadata and file URL to GitHub Actions via REST API
+Converts it into a .pptx using generate_slides.py
 
-GitHub Actions
+Saves it to docs/output/
 
-Downloads the file
+GitHub Pages automatically serves the updated docs/ directory
 
-Runs generate_slides.py to create a PowerPoint
+📦 Python Requirements
+Install dependencies locally for testing:
 
-Saves the .pptx to docs/output/
-
-Sends a download link via ClickSend or email
-
-⸻
-
-📁 Project Structure
-
-.
-
-├── .github/
-
-│   └── workflows/
-
-│       └── generate_slides.yml       # GitHub Action workflow
-
-├── docs/
-
-│   └── output/                       # Published PowerPoint files
-
-├── uploads/                          # Temporary file storage
-
-├── generate_slides.py                # Converts files to PowerPoint
-
-├── requirements.txt                  # Python dependencies
-
-└── README.md
-
-⸻
-
-🔧 Setup Instructions
-
-1. Create GitHub Repository
-
-Create a new repository named doc2slides.
-
-2. Add GitHub Secrets
-
-Go to Repo → Settings → Secrets → Actions and add:
-
-Secret NameDescription
-
-CLICKSEND_USERNAMEYour ClickSend email login
-
-CLICKSEND_API_KEYYour ClickSend API key
-
-EMAIL_API_KEY(Optional) Email service API key
-
-3. Define GitHub Action
-
-File: .github/workflows/generate_slides.yml
-
-on:
-
-  workflow_dispatch:
-
-    inputs:
-
-      file_url:
-
-        required: true
-
-      title:
-
-        required: true
-
-      recipient:
-
-        required: true
-
-4. Zapier Setup
-
-Trigger: New form submission
-
-Action 1: Download file
-
-Action 2: POST to GitHub API
-
-POST https://api.github.com/repos/your-username/doc2slides/actions/workflows/generate_slides.yml/dispatches
-
-Headers:
-
-{
-
-  "Authorization": "Bearer YOUR_GITHUB_PAT",
-
-  "Accept": "application/vnd.github.v3+json"
-
-}
-
-Body:
-
-{
-
-  "ref": "main",
-
-  "inputs": {
-
-    "file_url": "https://example.com/uploaded.pdf",
-
-    "title": "Team Orientation Slides",
-
-    "recipient": "+1234567890"
-
-  }
-
-}
-
-⸻
-
-🧪 Local Testing
-
-# Set environment variables
-
-export CLICKSEND_USERNAME="your_email@example.com"
-
-export CLICKSEND_API_KEY="your_api_key"
-
-
-
-# Run script manually
-
-python generate_slides.py --file "uploads/sample.pdf" --title "My Slides" --recipient "+1234567890"
-
-⸻
-
-✅ Requirements
+```
+bash
+Copy
+Edit
+pip install -r requirements.txt
+Required packages:
 
 python-pptx
 
@@ -184,26 +113,20 @@ PyMuPDF
 
 Pillow
 
-clicksend-client
-
 requests
 
-⸻
+```
 
-🛠️ Future Improvements
+🧪 Local Test
 
-Add support for DOCX and PNG
+```
 
-Generate ICS calendar invites for presentations
+python generate_slides.py uploads/sample.pdf "My Test Title"
 
-Web dashboard to manage uploaded files and downloads
-
-Google Drive or Dropbox integration
-
-⸻
+```
 
 📘 License
-
 MIT License
 
 
+---
