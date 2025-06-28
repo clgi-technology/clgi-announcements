@@ -3,87 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload File for PowerPoint Generation</title>
+    <title>File Upload Form</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; }
-        input[type="text"], input[type="file"] { width: 100%; padding: 10px; margin: 10px 0; }
-        button { padding: 10px 15px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
-        button:hover { background-color: #45a049; }
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #f4f4f4;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        input[type="file"], input[type="text"], input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        #statusMessage {
+            text-align: center;
+            font-size: 16px;
+            color: #333;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Upload Your Document and Title</h2>
-        <form id="uploadForm">
-            <label for="file">Choose File (PDF or JPEG)</label>
-            <input type="file" id="file" name="file" accept="application/pdf, image/jpeg" required>
 
-            <label for="title">Title</label>
-            <input type="text" id="title" name="title" placeholder="Enter presentation title" required>
+    <h1>Upload Document to Generate PowerPoint</h1>
 
-            <button type="submit">Submit</button>
-        </form>
-        <div id="statusMessage"></div>
-    </div>
+    <form id="uploadForm">
+        <label for="file">Choose a file (PDF or JPEG):</label>
+        <input type="file" id="file" name="file" accept=".pdf, .jpeg, .jpg" required>
+
+        <label for="title">Title of the PowerPoint:</label>
+        <input type="text" id="title" name="title" placeholder="Enter title for the slides" required>
+
+        <input type="submit" value="Submit">
+    </form>
+
+    <div id="statusMessage"></div>
 
     <script>
-        document.getElementById("uploadForm").addEventListener("submit", function(event) {
-            event.preventDefault(); // Prevent default form submission
+    document.getElementById("uploadForm").addEventListener("submit", function(event) {
+        event.preventDefault(); // Prevent default form submission
 
-            const fileInput = document.getElementById("file");
-            const titleInput = document.getElementById("title");
-            const statusMessage = document.getElementById("statusMessage");
+        const fileInput = document.getElementById("file");
+        const titleInput = document.getElementById("title");
+        const statusMessage = document.getElementById("statusMessage");
 
-            if (!fileInput.files.length) {
-                statusMessage.innerHTML = "Please choose a file.";
-                return;
+        if (!fileInput.files.length) {
+            statusMessage.innerHTML = "Please choose a file.";
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const title = titleInput.value;
+
+        // Handle the file upload (e.g., upload to cloud or GitHub Releases and get the file URL)
+        // For simplicity, we'll assume the file is publicly available (replace with the actual file URL)
+        const fileUrl = "https://example.com/path/to/uploaded/file.pdf"; // Replace with your actual file URL
+
+        // GitHub API URL (update to match your GitHub repo)
+        const githubApiUrl = "https://api.github.com/repos/clgi-technology/clgi-announcements/dispatches";
+        const githubToken = "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN";  // Replace with your GitHub personal access token
+
+        const payload = {
+            "event_type": "generate_slides",
+            "client_payload": {
+                "file_url": fileUrl,
+                "title": title
             }
+        };
 
-            const file = fileInput.files[0];
-            const title = titleInput.value;
-            const formData = new FormData();
-            formData.append("file", file);
-            formData.append("title", title);
-
-            // Upload the file to GitHub Pages or temporary storage (e.g., directly to GitHub or a cloud service)
-            // For simplicity, let's assume the file is publicly available (we'll use the file URL).
-
-            // Here, we need to store the file in a way that we can pass a URL to GitHub's API.
-            // Example: assuming file upload is complete and we get the URL.
-            const fileUrl = "https://example.com/path/to/uploaded/file.pdf"; // Replace with real URL after uploading
-
-            // Make API request to trigger GitHub Actions
-            const githubApiUrl = "https://api.github.com/repos/{username}/{repo}/dispatches";
-            const githubToken = "YOUR_GITHUB_PERSONAL_ACCESS_TOKEN";  // Replace with your token
-
-            const payload = {
-                "event_type": "generate_slides",
-                "client_payload": {
-                    "file_url": fileUrl,
-                    "title": title
-                }
-            };
-
-            fetch(githubApiUrl, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${githubToken}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(response => {
-                if (response.ok) {
-                    statusMessage.innerHTML = "File submitted successfully. PowerPoint generation in progress!";
-                } else {
+        fetch(githubApiUrl, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${githubToken}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            if (response.ok) {
+                statusMessage.innerHTML = "File submitted successfully. PowerPoint generation in progress!";
+            } else {
+                response.json().then(data => {
+                    console.error("Error response:", data);
                     statusMessage.innerHTML = "Error submitting file. Please try again later.";
-                }
-            })
-            .catch(error => {
-                statusMessage.innerHTML = "Error: " + error.message;
-            });
+                });
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            statusMessage.innerHTML = "Error: " + error.message;
         });
+    });
     </script>
+
 </body>
 </html>
